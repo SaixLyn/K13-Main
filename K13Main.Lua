@@ -84,27 +84,10 @@ local StatsTab = window:AddTab("Stats")
 local infoTab = window:AddTab("Info")
 KillingTab:Show()
 
-infoTab:AddLabel("Made by Henne ♥️").TextSize = 20
-infoTab:AddLabel("Official Discord: discord.gg/silencev1")
-infoTab:AddButton("Copy Discord Invite", function()
-    local link = "https://discord.gg/9eFf93Kg8D"
-    if setclipboard then
-        setclipboard(link)
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "Link Copied!";
-            Text = "You can continue to Discord now.";
-            Duration = 3;
-        })
-    else
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "Error!";
-            Text = "Not Supported.";
-            Duration = 3;
-        })
-    end
-end)
-
-infoTab:AddLabel("")
+infoTab:AddLabel("Made by Shi ♥️").TextSize = 20
+infoTab:AddLabel("Facebook | Sai Espinoza")
+infoTab:AddLabel("Tiktok | k13s_1")
+infoTab:AddLabel("Roblox | DarkPhantoM_Prince")
 local wLabel = infoTab:AddLabel("VERSION//2.0.0")
 wLabel.TextSize = 30
 wLabel.Font = Enum.Font.Arcade
