@@ -13,12 +13,22 @@ local antiAFKConnection
 
 
 
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local displayName = player.DisplayName
+if not displayName or displayName == "" then
+    displayName = player.Name
+end
+
+local title = ("Shi Private Version | Welcome %s"):format(displayName)
+
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/CoronaBlanca/Lxbrxrys/refs/heads/main/Xlxrxxm"))()
 
-local window = library:AddWindow("Shi | Main", {
+local window = library:AddWindow(title, {
     main_color = Color3.fromRGB(80, 0, 130),
-    min_size = Vector2.new(600, 630),
-    can_resize = false,
+    min_size = Vector2.new(600, 800),
+    can_resize = true,
 })
 
 local function setupAntiAFK()
@@ -1672,6 +1682,96 @@ local autoFarmSwitch = FarmingTab:AddSwitch("Start", function(enabled)
         end
     end
 end)
+
+local toolsCombFolder = farmingTab:AddFolder("Auto Tools OP")
+
+local function equipToolFast(player, toolName, repName, repValue)
+    local tool = player.Backpack:FindFirstChild(toolName) or player.Character:FindFirstChild(toolName)
+    if tool and player.Character and player.Character:FindFirstChild("Humanoid") then
+        tool.Parent = player.Character
+        if repName and tool:FindFirstChild(repName) then
+            tool[repName].Value = repValue
+        end
+    end
+end
+
+local function fastPunch(player)
+    local punch = player.Backpack:FindFirstChild("Punch") or player.Character:FindFirstChild("Punch")
+    if punch then
+        punch.Parent = player.Character
+        if punch:FindFirstChild("attackTime") then punch.attackTime.Value = 0 end
+        player.muscleEvent:FireServer("punch", "rightHand")
+        player.muscleEvent:FireServer("punch", "leftHand")
+        local punchTool = player.Character and player.Character:FindFirstChild("Punch")
+        if punchTool then punchTool:Activate() end
+    end
+end
+
+toolsCombFolder:AddSwitch("Auto Weight + Punch", function(Value)
+    _G.ComboWeightPunch = Value
+    local player = game.Players.LocalPlayer
+
+    if Value then
+        task.spawn(function()
+            while _G.ComboWeightPunch do
+                equipToolFast(player, "Weight", "repTime", 0)
+                player.muscleEvent:FireServer("rep")
+                fastPunch(player)
+                task.wait()
+            end
+        end)
+    else
+        local char = player.Character
+        for _, toolName in ipairs({"Weight", "Punch"}) do
+            local eq = char:FindFirstChild(toolName)
+            if eq then eq.Parent = player.Backpack end
+        end
+    end
+end, "Levanta pesas y golpea automÃƒÂ¡ticamente (rÃƒÂ¡pido)")
+
+toolsCombFolder:AddSwitch("Auto Pushups + Punch", function(Value)
+    _G.ComboPushupPunch = Value
+    local player = game.Players.LocalPlayer
+
+    if Value then
+        task.spawn(function()
+            while _G.ComboPushupPunch do
+                equipToolFast(player, "Pushups", "repTime", 0)
+                player.muscleEvent:FireServer("rep")
+                fastPunch(player)
+                task.wait()
+            end
+        end)
+    else
+        local char = player.Character
+        for _, toolName in ipairs({"Pushups", "Punch"}) do
+            local eq = char:FindFirstChild(toolName)
+            if eq then eq.Parent = player.Backpack end
+        end
+    end
+end, "Haz flexiones y golpea automÃƒÂ¡ticamente (rÃƒÂ¡pido)")
+
+toolsCombFolder:AddSwitch("Auto Situps + Punch", function(Value)
+    _G.ComboSitupPunch = Value
+    local player = game.Players.LocalPlayer
+
+    if Value then
+        task.spawn(function()
+            while _G.ComboSitupPunch do
+                equipToolFast(player, "Situps", "repTime", 0)
+                player.muscleEvent:FireServer("rep")
+                fastPunch(player)
+                task.wait()
+            end
+        end)
+    else
+        local char = player.Character
+        for _, toolName in ipairs({"Situps", "Punch"}) do
+            local eq = char:FindFirstChild(toolName)
+            if eq then eq.Parent = player.Backpack end
+        end
+    end
+end, "Haz abdominales y golpea automÃƒÂ¡ticamente (rÃƒÂ¡pido)")
 
 FarmingTab:AddLabel("Rocks:").TextSize = 22
 
