@@ -1558,136 +1558,24 @@ end)
 
 FarmingTab:AddLabel("Tools:").TextSize = 22
 
-local SelectedTool = nil
+local SelectedMode = nil
 local AutoFarm = false
 
-local toolDropdown = FarmingTab:AddDropdown("Select Tool", function(selection)
-    SelectedTool = selection
-end)
-toolDropdown:Add("Weight")
-toolDropdown:Add("Pushups")
-toolDropdown:Add("Situps")
-toolDropdown:Add("Handstands")
-toolDropdown:Add("Fast Punch")
-toolDropdown:Add("Stomp")
-toolDropdown:Add("Ground Slam")
-
-local autoFarmSwitch = FarmingTab:AddSwitch("Start", function(enabled)
-    AutoFarm = enabled
-
-    if enabled then
-        task.spawn(function()
-            while AutoFarm do
-                local player = game:GetService("Players").LocalPlayer
-
-                if SelectedTool == "Weight" then
-                    if not player.Character:FindFirstChild("Weight") then
-                        local weightTool = player.Backpack:FindFirstChild("Weight")
-                        if weightTool then
-                            player.Character.Humanoid:EquipTool(weightTool)
-                        end
-                    end
-                    player.muscleEvent:FireServer("rep")
-
-                elseif SelectedTool == "Pushups" then
-                    if not player.Character:FindFirstChild("Pushups") then
-                        local pushupsTool = player.Backpack:FindFirstChild("Pushups")
-                        if pushupsTool then
-                            player.Character.Humanoid:EquipTool(pushupsTool)
-                        end
-                    end
-                    player.muscleEvent:FireServer("rep")
-
-                elseif SelectedTool == "Situps" then
-                    if not player.Character:FindFirstChild("Situps") then
-                        local situpsTool = player.Backpack:FindFirstChild("Situps")
-                        if situpsTool then
-                            player.Character.Humanoid:EquipTool(situpsTool)
-                        end
-                    end
-                    player.muscleEvent:FireServer("rep")
-
-                elseif SelectedTool == "Handstands" then
-                    if not player.Character:FindFirstChild("Handstands") then
-                        local handstandsTool = player.Backpack:FindFirstChild("Handstands")
-                        if handstandsTool then
-                            player.Character.Humanoid:EquipTool(handstandsTool)
-                        end
-                    end
-                    player.muscleEvent:FireServer("rep")
-
-                elseif SelectedTool == "Fast Punch" then
-                    local punch = player.Backpack:FindFirstChild("Punch")
-                    if punch then
-                        punch.Parent = player.Character
-                        if punch:FindFirstChild("attackTime") then
-                            punch.attackTime.Value = 0
-                        end
-                    end
-                    player.muscleEvent:FireServer("punch", "rightHand")
-                    player.muscleEvent:FireServer("punch", "leftHand")
-
-                    if player.Character:FindFirstChild("Punch") then
-                        player.Character.Punch:Activate()
-                    end
-
-                elseif SelectedTool == "Stomp" then
-                    local stomp = player.Backpack:FindFirstChild("Stomp")
-                    if stomp then
-                        stomp.Parent = player.Character
-                        if stomp:FindFirstChild("attackTime") then
-                            stomp.attackTime.Value = 0
-                        end
-                    end
-                    player.muscleEvent:FireServer("stomp")
-
-                    if player.Character:FindFirstChild("Stomp") then
-                        player.Character.Stomp:Activate()
-                    end
-
-                    if tick() % 6 < 0.1 then
-                        local virtualUser = game:GetService("VirtualUser")
-                        virtualUser:CaptureController()
-                        virtualUser:ClickButton1(Vector2.new(500, 500))
-                    end
-
-                elseif SelectedTool == "Ground Slam" then
-                    local groundSlam = player.Backpack:FindFirstChild("Ground Slam")
-                    if groundSlam then
-                        groundSlam.Parent = player.Character
-                        if groundSlam:FindFirstChild("attackTime") then
-                            groundSlam.attackTime.Value = 0
-                        end
-                    end
-                    player.muscleEvent:FireServer("slam")
-
-                    if player.Character:FindFirstChild("Ground Slam") then
-                        player.Character["Ground Slam"]:Activate()
-                    end
-
-                    if tick() % 6 < 0.1 then
-                        local virtualUser = game:GetService("VirtualUser")
-                        virtualUser:CaptureController()
-                        virtualUser:ClickButton1(Vector2.new(500, 500))
-                    end
-                end
-
-                task.wait()
-            end
-        end)
-    else
-        local player = game:GetService("Players").LocalPlayer
-        if SelectedTool and player.Character:FindFirstChild(SelectedTool) then
-            player.Character:FindFirstChild(SelectedTool).Parent = player.Backpack
-        end
-    end
+local modeDropdown = FarmingTab:AddDropdown("Select Tool", function(selection)
+    SelectedMode = selection
 end)
 
-local ComboFolder = FarmingTab:AddFolder("OP Tools Combos")
-ComboFolder:AddLabel("Combo Tools:").TextSize = 22
+modeDropdown:Add("Weight")
+modeDropdown:Add("Pushups")
+modeDropdown:Add("Situps")
+modeDropdown:Add("Handstands")
+modeDropdown:Add("Fast Punch")
+modeDropdown:Add("Stomp")
+modeDropdown:Add("Ground Slam")
 
-local SelectedCombo = nil
-local ComboActive = false
+modeDropdown:Add("Weight + Punch")
+modeDropdown:Add("Pushups + Punch")
+modeDropdown:Add("Situps + Punch")
 
 local function equipToolFast(player, toolName, repName, repValue)
     local tool = player.Backpack:FindFirstChild(toolName) or player.Character:FindFirstChild(toolName)
@@ -1711,31 +1599,74 @@ local function fastPunch(player)
     end
 end
 
-local comboDropdown = ComboFolder:AddDropdown("Select", function(selection)
-    SelectedCombo = selection
-end)
-comboDropdown:Add("Weight + Punch")
-comboDropdown:Add("Pushups + Punch")
-comboDropdown:Add("Situps + Punch")
+FarmingTab:AddSwitch("Start", function(enabled)
+    AutoFarm = enabled
+    local player = game:GetService("Players").LocalPlayer
 
-ComboFolder:AddSwitch("Start", function(enabled)
-    ComboActive = enabled
-    local player = game.Players.LocalPlayer
+    local function unequipAll()
+        local toolsToUnequip = {}
+        if string.find(SelectedMode, "Weight") or string.find(SelectedMode, "Pushups") or string.find(SelectedMode, "Situps") or string.find(SelectedMode, "Handstands") then
+            table.insert(toolsToUnequip, SelectedMode)
+        end
+        if SelectedMode == "Fast Punch" or SelectedMode == "Stomp" or SelectedMode == "Ground Slam" then
+            table.insert(toolsToUnequip, SelectedMode == "Fast Punch" and "Punch" or SelectedMode)
+        end
+        if string.find(SelectedMode, "Combo:") then
+            table.insert(toolsToUnequip, "Punch")
+            if string.find(SelectedMode, "Weight") then table.insert(toolsToUnequip, "Weight") end
+            if string.find(SelectedMode, "Pushups") then table.insert(toolsToUnequip, "Pushups") end
+            if string.find(SelectedMode, "Situps") then table.insert(toolsToUnequip, "Situps") end
+        end
+        
+        local char = player.Character
+        for _, toolName in ipairs(toolsToUnequip) do
+            local eq = char:FindFirstChild(toolName)
+            if eq then eq.Parent = player.Backpack end
+        end
+    end
 
     if enabled then
         task.spawn(function()
-            while ComboActive do
-                if SelectedCombo == "Weight + Punch" then
+            while AutoFarm do
+                
+                if SelectedMode == "Weight" or SelectedMode == "Pushups" or SelectedMode == "Situps" or SelectedMode == "Handstands" then
+                    equipToolFast(player, SelectedMode, "repTime", 0)
+                    player.muscleEvent:FireServer("rep")
+
+                elseif SelectedMode == "Fast Punch" then
+                    fastPunch(player)
+
+                elseif SelectedMode == "Stomp" then
+                    equipToolFast(player, "Stomp", "attackTime", 0)
+                    player.muscleEvent:FireServer("stomp")
+                    if player.Character:FindFirstChild("Stomp") then player.Character.Stomp:Activate() end
+                    if tick() % 6 < 0.1 then
+                        local virtualUser = game:GetService("VirtualUser")
+                        virtualUser:CaptureController()
+                        virtualUser:ClickButton1(Vector2.new(500, 500))
+                    end
+
+                elseif SelectedMode == "Ground Slam" then
+                    equipToolFast(player, "Ground Slam", "attackTime", 0)
+                    player.muscleEvent:FireServer("slam")
+                    if player.Character:FindFirstChild("Ground Slam") then player.Character["Ground Slam"]:Activate() end
+                    if tick() % 6 < 0.1 then
+                        local virtualUser = game:GetService("VirtualUser")
+                        virtualUser:CaptureController()
+                        virtualUser:ClickButton1(Vector2.new(500, 500))
+                    end
+                
+                elseif SelectedMode == "Combo: Weight + Punch" then
                     equipToolFast(player, "Weight", "repTime", 0)
                     player.muscleEvent:FireServer("rep")
                     fastPunch(player)
 
-                elseif SelectedCombo == "Pushups + Punch" then
+                elseif SelectedMode == "Combo: Pushups + Punch" then
                     equipToolFast(player, "Pushups", "repTime", 0)
                     player.muscleEvent:FireServer("rep")
                     fastPunch(player)
                     
-                elseif SelectedCombo == "Situps + Punch" then
+                elseif SelectedMode == "Combo: Situps + Punch" then
                     equipToolFast(player, "Situps", "repTime", 0)
                     player.muscleEvent:FireServer("rep")
                     fastPunch(player)
@@ -1745,24 +1676,7 @@ ComboFolder:AddSwitch("Start", function(enabled)
             end
         end)
     else
-        local char = player.Character
-        
-        local toolsToUnequip = {}
-        if SelectedCombo == "Weight + Punch" or SelectedCombo == "Pushups + Punch" or SelectedCombo == "Situps + Punch" then
-            table.insert(toolsToUnequip, "Punch")
-        end
-        if SelectedCombo == "Weight + Punch" then
-            table.insert(toolsToUnequip, "Weight")
-        elseif SelectedCombo == "Pushups + Punch" then
-            table.insert(toolsToUnequip, "Pushups")
-        elseif SelectedCombo == "Situps + Punch" then
-            table.insert(toolsToUnequip, "Situps")
-        end
-
-        for _, toolName in ipairs(toolsToUnequip) do
-            local eq = char:FindFirstChild(toolName)
-            if eq then eq.Parent = player.Backpack end
-        end
+        unequipAll()
     end
 end)
 
