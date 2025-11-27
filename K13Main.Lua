@@ -1683,7 +1683,11 @@ local autoFarmSwitch = FarmingTab:AddSwitch("Start", function(enabled)
     end
 end)
 
-local toolsCombFolder = farmingTab:AddFolder("Auto Tools OP")
+local ComboFolder = FarmingTab:AddFolder("OP Tools Combos")
+ComboFolder:AddLabel("Combo Tools:").TextSize = 22
+
+local SelectedCombo = nil
+local ComboActive = false
 
 local function equipToolFast(player, toolName, repName, repValue)
     local tool = player.Backpack:FindFirstChild(toolName) or player.Character:FindFirstChild(toolName)
@@ -1707,71 +1711,60 @@ local function fastPunch(player)
     end
 end
 
-toolsCombFolder:AddSwitch("Auto Weight + Punch", function(Value)
-    _G.ComboWeightPunch = Value
+local comboDropdown = ComboFolder:AddDropdown("Select", function(selection)
+    SelectedCombo = selection
+end)
+comboDropdown:Add("Weight + Punch")
+comboDropdown:Add("Pushups + Punch")
+comboDropdown:Add("Situps + Punch")
+
+ComboFolder:AddSwitch("Start", function(enabled)
+    ComboActive = enabled
     local player = game.Players.LocalPlayer
 
-    if Value then
+    if enabled then
         task.spawn(function()
-            while _G.ComboWeightPunch do
-                equipToolFast(player, "Weight", "repTime", 0)
-                player.muscleEvent:FireServer("rep")
-                fastPunch(player)
+            while ComboActive do
+                if SelectedCombo == "Weight + Punch" then
+                    equipToolFast(player, "Weight", "repTime", 0)
+                    player.muscleEvent:FireServer("rep")
+                    fastPunch(player)
+
+                elseif SelectedCombo == "Pushups + Punch" then
+                    equipToolFast(player, "Pushups", "repTime", 0)
+                    player.muscleEvent:FireServer("rep")
+                    fastPunch(player)
+                    
+                elseif SelectedCombo == "Situps + Punch" then
+                    equipToolFast(player, "Situps", "repTime", 0)
+                    player.muscleEvent:FireServer("rep")
+                    fastPunch(player)
+                end
+                
                 task.wait()
             end
         end)
     else
         local char = player.Character
-        for _, toolName in ipairs({"Weight", "Punch"}) do
+        
+        local toolsToUnequip = {}
+        if SelectedCombo == "Weight + Punch" or SelectedCombo == "Pushups + Punch" or SelectedCombo == "Situps + Punch" then
+            table.insert(toolsToUnequip, "Punch")
+        end
+        if SelectedCombo == "Weight + Punch" then
+            table.insert(toolsToUnequip, "Weight")
+        elseif SelectedCombo == "Pushups + Punch" then
+            table.insert(toolsToUnequip, "Pushups")
+        elseif SelectedCombo == "Situps + Punch" then
+            table.insert(toolsToUnequip, "Situps")
+        end
+
+        for _, toolName in ipairs(toolsToUnequip) do
             local eq = char:FindFirstChild(toolName)
             if eq then eq.Parent = player.Backpack end
         end
     end
-end, "Levanta pesas y golpea automÃƒÂ¡ticamente (rÃƒÂ¡pido)")
-
-toolsCombFolder:AddSwitch("Auto Pushups + Punch", function(Value)
-    _G.ComboPushupPunch = Value
-    local player = game.Players.LocalPlayer
-
-    if Value then
-        task.spawn(function()
-            while _G.ComboPushupPunch do
-                equipToolFast(player, "Pushups", "repTime", 0)
-                player.muscleEvent:FireServer("rep")
-                fastPunch(player)
-                task.wait()
-            end
-        end)
-    else
-        local char = player.Character
-        for _, toolName in ipairs({"Pushups", "Punch"}) do
-            local eq = char:FindFirstChild(toolName)
-            if eq then eq.Parent = player.Backpack end
-        end
-    end
-end, "Haz flexiones y golpea automÃƒÂ¡ticamente (rÃƒÂ¡pido)")
-
-toolsCombFolder:AddSwitch("Auto Situps + Punch", function(Value)
-    _G.ComboSitupPunch = Value
-    local player = game.Players.LocalPlayer
-
-    if Value then
-        task.spawn(function()
-            while _G.ComboSitupPunch do
-                equipToolFast(player, "Situps", "repTime", 0)
-                player.muscleEvent:FireServer("rep")
-                fastPunch(player)
-                task.wait()
-            end
-        end)
-    else
-        local char = player.Character
-        for _, toolName in ipairs({"Situps", "Punch"}) do
-            local eq = char:FindFirstChild(toolName)
-            if eq then eq.Parent = player.Backpack end
-        end
-    end
-end, "Haz abdominales y golpea automÃƒÂ¡ticamente (rÃƒÂ¡pido)")
+end)
 
 FarmingTab:AddLabel("Rocks:").TextSize = 22
 
