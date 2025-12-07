@@ -65,8 +65,6 @@ local blockedFrames = {
     "strengthFrame",
     "durabilityFrame",
     "agilityFrame",
-    "evilKarmaFrame",
-    "goodKarmaFrame",
 }
 
 for _, name in ipairs(blockedFrames) do
